@@ -1,0 +1,54 @@
+const express = require('express');
+const { createIssue, getIssuesByUser, updateIssueStatus } = require('../controllers/issuecontroller');
+const authenticate = require('../middleware/authenticate');
+const router = express.Router();
+
+router.post('/issue', authenticate, createIssue);
+// Route to submit an issue
+app.post('/issues', (req, res) => {
+    const { description, location, userId } = req.body;
+  
+    const query = `INSERT INTO issues (user_id, description, location, status) VALUES (?, ?, ?, 'pending')`;
+    db.query(query, [userId, description, location], (err, result) => {
+      if (err) {
+        console.error('Error submitting issue:', err);
+        return res.status(500).json({ message: 'Failed to submit issue' });
+      }
+  
+      res.status(201).json({ id: result.insertId, userId, description, location, status: 'pending' });
+    });
+  });
+
+
+router.get('/issues', authenticate, getIssuesByUser);
+// Route to get all issues (for admin dashboard)
+app.get('/issues', (req, res) => {
+    const query = 'SELECT * FROM issues';
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Error fetching issues:', err);
+        return res.status(500).json({ message: 'Failed to fetch issues' });
+      }
+      res.json(results);
+    });
+  });
+
+  
+router.put('/issue/status', authenticate, updateIssueStatus);
+// Route to resolve an issue
+app.put('/issues/:id/resolve', (req, res) => {
+    const issueId = req.params.id;
+  
+    const query = 'UPDATE issues SET status = "resolved" WHERE id = ?';
+    db.query(query, [issueId], (err, result) => {
+      if (err) {
+        console.error('Error resolving issue:', err);
+        return res.status(500).json({ message: 'Failed to resolve issue' });
+      }
+  
+      res.json({ message: 'Issue resolved successfully', id: issueId });
+    });
+  });
+
+  
+module.exports = router;
